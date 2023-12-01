@@ -28,7 +28,7 @@ router.get('/user/me', async ctx => {
 
 router.get('/auth/discord/login', async ctx => {
   const url =
-    'https://discord.com/api/oauth2/authorize?client_id=1057732287862685796&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify';
+    'https://discord.com/api/oauth2/authorize?client_id=1180137593132810240&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A4000%2Fauth%2Fdiscord%2Fcallback&scope=identify';
 
   ctx.redirect(url);
 });
@@ -65,14 +65,16 @@ router.get('/auth/discord/callback', async ctx => {
     }
   });
 
+  console.log("userResponse.data", userResponse);
+
   const { id, username, avatar } = userResponse.data;
 
   const checkIfUserExists = await db('users').where({ discordId: id }).first();
 
   if (checkIfUserExists) {
-    await db('users').where({ discordId: id }).update({ username, avatar });
+    await db('users').where({ discordId: id }).update({ username, avatar: avatar || 'none' });
   } else {
-    await db('users').insert({ discordId: id, username, avatar });
+    await db('users').insert({ discordId: id, username, avatar: avatar || 'none' });
   }
 
   const token = await sign({ sub: id }, process.env.JWT_SECRET, {
